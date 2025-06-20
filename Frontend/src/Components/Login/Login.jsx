@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { FaUser, FaLock, FaEnvelope, FaKey, FaEye, FaEyeSlash } from 'react-icons/fa';
-
+import axios from "axios";
+import { useNotification } from '../../context/Notification.jsx';
+import {useNavigate} from "react-router-dom"
 export const Login = () => {
+  const addNotification = useNotification();
+  const navigate=useNavigate();
   const [activeTab, setActiveTab] = useState("Login");
   const [isAgent, setIsAgent] = useState(false);
   const [showEmailVerificationMessage, setShowEmailVerificationMessage] = useState(false);
@@ -13,6 +17,7 @@ export const Login = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [emailVerificationEmail, setEmailVerificationEmail] = useState(''); // New state for email verification flow
   const [passwordError, setPasswordError] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -23,9 +28,7 @@ export const Login = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-    const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|:;"'<>,.?/~`\-])[A-Za-z\d!@#$%^&*()_+={}\[\]|:;"'<>,.?/~`\-]{8,}$/;
-
+  const validatePassword = (password) => {
     if (password.length < 8) {
       return "Password must be at least 8 characters long.";
     }
@@ -43,41 +46,150 @@ export const Login = () => {
     }
     return '';
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log(`Submitting ${activeTab} form...`);
 
-    if (activeTab === "Login" || activeTab === "SignUp") {
-      console.log("Is Agent:", isAgent);
+  const handlePasswordChange = (setter, value) => {
+    setter(value);
+    if (passwordError) {
+      setPasswordError('');
     }
+  };
 
-    if (activeTab === "SignUp") {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (activeTab === "Login") {
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/login`;
+      const error = validatePassword(loginPassword);
+      if (error) {
+        setPasswordError(error);
+        return;
+      }
+      try {
+        const response = await axios.post(url, { email: loginEmail, password: loginPassword }, { withCredentials: true });
+        if (response.data?.status === true) {
+          addNotification(response.data?.message, "success");
+          if (response.data.token) {
+            localStorage.setItem('jwtToken', response.data.token);
+          }
+          navigate('/')
+        } else if (response.status === 200) {
+          addNotification(response.data?.message, "success");
+        }
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("An unexpected error occurred. Please try again.", 'error');
+        }
+      }
+    } else if (activeTab === "SignUp") {
       const error = validatePassword(signupPassword);
       if (error) {
         setPasswordError(error);
         return;
       }
-      setShowEmailVerificationMessage(true);
-    }  else if (activeTab === "ForgotPassword") {
-      console.log(`Sending OTP to: ${forgotPasswordEmail}`);
-      setActiveTab("VerifyOTP");
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/register`;
+      try {
+        const response = await axios.post(url, { name: signupUsername, password: signupPassword, email: signupEmail, type: isAgent ? 'agent' : 'user' }, { withCredentials: true });
+        
+        if (response.data?.status === "pending_email_verification") {
+          addNotification(response.data.message, 'success');
+          setEmailVerificationEmail(response.data.email);
+          setActiveTab("VerifyEmail");
+        } else if (response.data?.message) {
+          addNotification(response.data.message, 'success');
+        } else {
+          addNotification("Registration successful!", 'success');
+        }
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("An unexpected error occurred during registration. Please try again.", 'error');
+        }
+      }
+    } else if (activeTab === "ForgotPassword") {
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/forgot-password`;
+      try {
+        const response = await axios.post(url, { email: forgotPasswordEmail });
+        addNotification(response.data?.message, response.data?.status === 'success' ? 'success' : 'error');
+        setActiveTab("VerifyOTP");
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("Failed to send OTP. Please try again.", 'error');
+        }
+      }
     } else if (activeTab === "VerifyOTP") {
-      console.log(`Verifying OTP: ${otp}`);
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/verify-otp`;
+      console.log(`Verifying OTP for password reset: ${otp}`);
       setActiveTab("ResetPassword");
+      addNotification("OTP verified. Please set your new password.", "success");
+
+      try {
+        const response = await axios.post(url, { email: forgotPasswordEmail, otp: otp });
+        addNotification(response.data?.message, 'success');
+        setActiveTab("ResetPassword");
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("OTP verification failed. Please try again.", 'error');
+        }
+      }
     } else if (activeTab === "ResetPassword") {
       if (newPassword !== confirmNewPassword) {
-        alert("New password and confirm new password do not match!");
+        addNotification("New password and confirm new password do not match!", 'error');
         return;
       }
-      console.log("New password set!");
-      setShowPasswordSetSuccess(true);
-      setNewPassword('');
-      setConfirmNewPassword('');
+      const passwordValidationError = validatePassword(newPassword);
+      if (passwordValidationError) {
+        addNotification(passwordValidationError, 'error');
+        return;
+      }
+
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/reset-password`;
+      try {
+        const response = await axios.post(url, {
+          email: forgotPasswordEmail,
+          otp: otp,
+          newPassword: newPassword
+        });
+        addNotification(response.data?.message, 'success');
+        setShowPasswordSetSuccess(true);
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setOtp(''); // Clear OTP after use
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("Failed to reset password. Please try again.", 'error');
+        }
+      }
+    } else if (activeTab === "VerifyEmail") { // New handler for Email Verification OTP
+      const url = `${import.meta.env.VITE_SERVER_URL}/api/verify-email-otp`;
+      try {
+        const response = await axios.post(url, { email: emailVerificationEmail, otp: otp });
+        addNotification(response.data?.message, 'success');
+        setShowEmailVerificationMessage(false); // Hide the message if it was shown previously
+        setActiveTab("Login"); // Redirect to login after successful verification
+        setOtp(''); // Clear OTP
+        setEmailVerificationEmail(''); // Clear email
+      } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+          addNotification(error.response.data.message, 'error');
+        } else {
+          addNotification("Email verification failed. Please try again.", 'error');
+        }
+      }
     }
   };
 
   const renderContent = () => {
-    if (showEmailVerificationMessage && activeTab === "SignUp") {
+    if (showEmailVerificationMessage && activeTab === "SignUp") { // This path is now mostly handled by status in handleSubmit
       return (
         <div className="p-8 text-center bg-gray-50 rounded-b-lg animate-fade-in">
           <h2 className="text-3xl font-bold text-green-600 mb-4">Verification Sent!</h2>
@@ -140,7 +252,7 @@ export const Login = () => {
                 placeholder="Enter your password"
                 className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#007FFF] focus:border-transparent text-lg shadow-sm transition duration-200"
                 value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(setLoginPassword, e.target.value)}
                 required
               />
               <span
@@ -165,7 +277,7 @@ export const Login = () => {
               >
                 Forgot Password?
               </button>
-               {passwordError && <p className="text-red-500 text-sm mt-2">{passwordError}</p>}
+              {passwordError && <p className="text-red-500 text-sm mt-2">{passwordError}</p>}
             </div>
 
             <button
@@ -208,7 +320,7 @@ export const Login = () => {
                 placeholder="Create a password"
                 className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#007FFF] focus:border-transparent text-lg shadow-sm transition duration-200"
                 value={signupPassword}
-                onChange={(e) => setSignupPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(setSignupPassword, e.target.value)}
                 required
               />
               <span
@@ -244,7 +356,7 @@ export const Login = () => {
             >
               Sign Up
             </button>
-             {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
           </form>
         );
       case "ForgotPassword":
@@ -280,7 +392,7 @@ export const Login = () => {
             </button>
           </form>
         );
-      case "VerifyOTP":
+      case "VerifyOTP": // This case is for Password Reset OTP
         return (
           <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-white rounded-b-xl">
             <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">Verify Code</h2>
@@ -314,6 +426,40 @@ export const Login = () => {
             </button>
           </form>
         );
+      case "VerifyEmail": // New case for Email Verification OTP
+        return (
+          <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-white rounded-b-xl">
+            <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">Verify Email</h2>
+            <p className="text-gray-600 text-center mb-4">
+              An OTP has been sent to <span className="font-semibold text-[#007FFF]">{emailVerificationEmail}</span>.
+              Please enter it below to activate your account.
+            </p>
+            <div className="relative">
+              <FaKey className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="text"
+                placeholder="Enter Email OTP"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#007FFF] focus:border-transparent text-lg shadow-sm transition duration-200"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-[#007FFF] text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition duration-300 text-xl font-semibold shadow-md"
+            >
+              Verify Email
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("Login")} // Or some other appropriate action
+              className="w-full text-[#007FFF] mt-4 py-2 hover:underline text-md font-medium"
+            >
+              Back to Login
+            </button>
+          </form>
+        );
       case "ResetPassword":
         return (
           <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-white rounded-b-xl">
@@ -328,7 +474,7 @@ export const Login = () => {
                 placeholder="New Password"
                 className="w-full pl-12 pr-12 py-1 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#007FFF] focus:border-transparent text-lg shadow-sm transition duration-200"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(setNewPassword, e.target.value)}
                 required
               />
               <span
@@ -345,7 +491,7 @@ export const Login = () => {
                 placeholder="Confirm New Password"
                 className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#007FFF] focus:border-transparent text-lg shadow-sm transition duration-200"
                 value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(setConfirmNewPassword, e.target.value)}
                 required
               />
               <span
@@ -387,6 +533,7 @@ export const Login = () => {
                   setActiveTab(item);
                   setShowEmailVerificationMessage(false);
                   setShowPasswordSetSuccess(false);
+                  setPasswordError('');
                 }}
                 className={`flex-1 text-center py-2 text-xl font-semibold transition-all duration-300
                   ${activeTab === item
