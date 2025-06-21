@@ -56,13 +56,14 @@ export const DashboardHomeOutlet = ({ userData, open, setOpen, Links, name, smal
             <FaUserCircle className="text-3xl text-gray-600" />
           ) : (
             <div className="flex items-center space-x-3">
-              <img
-                src={userData.profilePic}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-[#007FFF]"
-              />
+            <div
+                  className="w-10 h-10 bg-[#007FFF] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold"
+                  
+                >
+                  {userData.username?.substring(0,2)}
+              </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">{userData.name}</span>
+                <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">{userData.username}</span>
                 <span className="text-gray-500 text-xs whitespace-nowrap">{userData.email}</span>
               </div>
             </div>
@@ -82,13 +83,13 @@ export const DashboardHomeOutlet = ({ userData, open, setOpen, Links, name, smal
           <h2 className="text-xl font-semibold text-gray-800">{activeTitle}</h2>
 
           <div className="flex items-center space-x-3">
-            <span className="font-medium text-gray-700 hidden sm:block">{userData.name}</span>
+            <span className="font-medium text-gray-700 hidden sm:block">{userData.username}</span>
             <div
                   className="w-10 h-10 bg-[#007FFF] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold"
                   
                 >
-                  {userData.name?.substring(0,2)}
-                </div>
+                  {userData.username?.substring(0,2)}
+              </div>
           </div>
         </header>
 

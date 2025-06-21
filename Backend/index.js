@@ -1,10 +1,11 @@
 const express=require("express");
 const cors=require("cors");
+const http=require("http");
 const app=express();
 const session = require('express-session');
 const cookieParser=require('cookie-parser')
 const MongoDBStore = require('connect-mongodb-session')(session);
-
+const {Server}=require("socket.io");
 const store = new MongoDBStore({
   uri: process.env.MONGO_URL,
   collection: 'sessions'
@@ -36,15 +37,32 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-    res.send("Hello from the MERN backend!");
-});
-const PORT = process.env.PORT || 3000;
 
 const connect=require("./Controllers/Connect.db");
 const LoginRouter=require("./routes/login");
 connect();
+
+
+const server=http.createServer(app);
+const io=new Server(server,{
+cors:{
+origin:'http://localhost:5173',
+methods:["GET","POST"],
+credentials:true
+ }
+});
+const ComplaintRouter=require("./routes/ComplaintRouter");
+const SocketOn=require("./routes/initializeSocketHandlers");
+ComplaintRouter.setSocketIO(io);
+
+app.get("/", (req, res) => {
+    res.send("Hello from the MERN backend!");
+});
 app.use("/api",LoginRouter);
-app.listen(PORT, () => {
+app.use('/api', ComplaintRouter);
+SocketOn(io);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO server also running on port ${PORT}`);
 });

@@ -69,9 +69,9 @@ const Sign = async (req, res) => {
 
         let roles;
         if (type === "agent") {
-            roles = ['user', 'agent'];
+            roles =  'agent';
         } else if (type === "admin") {
-            roles = ['admin'];
+            roles ='admin';
         } else {
             roles = "user";
         }
@@ -183,4 +183,17 @@ const getRoles = async (req, res) => {
         return res.status(500).json({ message: "Internal server error.", error: error.message });
     }
 };
-module.exports = { Login, Sign, Protect, Logout,GetSession,getRoles };
+
+const profileData=async(req,res)=>{
+    const user=req.user;
+    if(!user){
+        return res.status(400).json({message:"Un authorization"});
+    }
+    return res.status(200).json({
+        _id: req.user.id,
+        username: req.user.username,
+        email: req.user.email,
+        role: req.user.role,
+    });
+}
+module.exports = { Login, Sign, Protect, Logout,GetSession,getRoles,profileData };

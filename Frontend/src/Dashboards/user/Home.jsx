@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
-
+import React, { useState,useEffect } from 'react';
+import axios from "axios"
 import { FaHome, FaClipboardList, FaEdit, FaUserCog, FaBars, FaUserCircle } from 'react-icons/fa';
 import { DashboardHomeOutlet } from '../../Pages/DashboardHomeOutlet';
 
 export const UserDashboardHome = () => {
   const [open, setOpen] = useState(false);
-
+  const [profile,setProfile]=useState('');
+  const url=`${import.meta.env.VITE_SERVER_URL}`;
+  const token=localStorage.getItem('jwtToken');
+  useEffect(()=>{
+  axios.get(`${url}/api/das/profile`,{headers:{Authorization:`Bearer ${token}`},withCredentials:true})
+  .then((response)=>{
+    console.log(response.data);
+    setProfile(response.data);
+  })
+  .catch((error)=>{
+    console.log(error);
+  })
+  },[])
   const userData = {
     name: "John Doe",
     email: "john.doe@example.com",
@@ -21,7 +33,7 @@ export const UserDashboardHome = () => {
 
   return (
     <div>
-      <DashboardHomeOutlet userData={userData} open={open} setOpen={setOpen} Links={Links} name={"User Dashboard"} small={"UD"}/>
+      <DashboardHomeOutlet userData={profile} open={open} setOpen={setOpen} Links={Links} name={"User Dashboard"} small={"UD"}/>
     </div>
   );
 };

@@ -16,10 +16,10 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     role: {
-        type: [String],
+        type: String,
         required: true,
         enum: ['user', 'admin', 'agent'],
-        default: ['user'],
+        default: 'user',
     },
     verified: {
         type: Boolean,
