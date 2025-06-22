@@ -8,7 +8,7 @@
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
 
-    const filteredComplaints = complaints.filter(c => {
+    const filteredComplaints = complaints?.filter(c => {
         const matchesSearch = searchQuery === '' ||
                             c._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             c.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -78,8 +78,8 @@
                 </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-                {filteredComplaints.length > 0 ? (
-                filteredComplaints.map((complaint) => (
+                {filteredComplaints?.length > 0 ? (
+                filteredComplaints?.map((complaint) => (
                     <tr key={complaint._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {complaint._id}
@@ -107,7 +107,7 @@
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
-                        onClick={() => onView(complaint.fullDetails)}
+                        onClick={() => onView(complaint)}
                         className="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"
                         >
                         View

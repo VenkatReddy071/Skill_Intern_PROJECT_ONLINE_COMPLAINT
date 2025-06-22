@@ -63,6 +63,68 @@ const verifyOtpAndResetPassword = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    const { email, newPassword } = req.body;
+    
+    if (!email || !newPassword) {
+        return res.status(400).json({ message: "Email and new password are required." });
+    }
+
+    try {
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        
+        await user.save();
+
+        return res.status(200).json({ message: "Password updated successfully!" });
+
+    } catch (error) {
+        console.error('Error changing password:', error);
+        return res.status(500).json({ message: "Failed to change password. Please try again later.", error: error.message });
+    }
+};
+
+const verifyPassword = async (req, res) => {
+    try {
+        const { email,password } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ status: "error", message: "User not found." });
+        }
+        const compare=await bcrypt.compare(password,user.password);
+        if(!compare){
+            res.status(500).json({ status: "error", message: "Password is wrong"});
+        }
+        const otp = generateOtp();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        user.otp = otp;
+        user.otpExpires = otpExpires;
+        user.otpType = 'email_verify';
+        await user.save();
+
+        console.log(`Generated OTP for ${email} (password reset): ${otp}`);
+
+        await sendEmail(
+            email,
+            'Password Reset OTP for ResolveFlow',
+            `Your OTP for password reset is: ${otp}\nThis OTP is valid for 10 minutes.`,
+            `<p>Your OTP for password reset is: <strong>${otp}</strong></p><p>This OTP is valid for 10 minutes.</p>`
+        );
+
+        res.status(200).json({ status: "success", message: "Password has been reset successfully!" });
+
+    } catch (error) {
+        console.error("Error in verifyOtpAndResetPassword:", error);
+        res.status(500).json({ status: "error", message: "Failed to reset password. Please try again.", errors: error.message });
+    }
+};
 const verifyEmailOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
@@ -90,4 +152,4 @@ const verifyEmailOtp = async (req, res) => {
     }
 };
 
-module.exports = { requestPasswordReset, verifyOtpAndResetPassword, verifyEmailOtp };
+module.exports = { requestPasswordReset, verifyOtpAndResetPassword, verifyEmailOtp,verifyPassword,changePassword };

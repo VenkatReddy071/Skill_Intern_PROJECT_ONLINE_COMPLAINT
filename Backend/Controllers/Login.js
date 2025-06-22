@@ -196,4 +196,47 @@ const profileData=async(req,res)=>{
         role: req.user.role,
     });
 }
-module.exports = { Login, Sign, Protect, Logout,GetSession,getRoles,profileData };
+
+const profileSetting=async(req,res)=>{
+    const {name,email,gender,age}=req.body.userData;
+    console.log(req.body,req.user);
+    const id=req.user.id;
+    try{
+        const user=await User.findById(id);
+        user.email=email;
+        user.name=name;
+        user.gender=gender;
+        user.age=age;
+        await user.save();
+        return res.status(200).json({message:"Profile updates Successfull!"});
+    }
+    catch(error){
+    return res.status(400).json({message:"failed to update the profile"});
+    }
+}
+
+const profileInfo=async(req,res)=>{
+    const id=req.user.id;
+    try{
+        const user=await User.findById(id);
+        console.log(user);
+        return res.status(200).json(user);
+    }
+    catch(error){
+    return res.status(400).json({message:"failed to update the profile"});
+    }
+}
+
+const agentRoles=async(req,res)=>{
+    try{
+        const user = await User.find({role:'agent'});
+        return res.status(200).json(user);
+    }
+    catch(error){
+        return res.status(400).json(error);
+    }
+}
+
+
+
+module.exports = { Login, Sign, Protect, Logout,GetSession,getRoles,profileData,profileSetting,profileInfo,agentRoles };

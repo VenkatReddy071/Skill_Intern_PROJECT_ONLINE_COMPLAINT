@@ -14,15 +14,27 @@ import {AgentOverviewPage} from "./Dashboards/Agent/AgentOverview";
 import {AdminOverviewPage}from './Dashboards/Admin/AdminOverview';
 import {MyComplaints} from "./Dashboards/user/MyComplaints";
 import {NewComplaint} from "./Dashboards/user/NewComplaint";
+import {UserManagementTable} from "./Dashboards/Admin/UserManagement.jsx"
 import { SocketProvider } from './context/ScoketContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import AdminDashboardComplaints from "./Dashboards/Admin/AllComplaints.jsx"
+import { SettingPage } from "./Dashboards/user/Settingspage.jsx"
+import AdminReport from "./Dashboards/Admin/AdminReports.jsx"
+import {AdminSettingPage} from "./Dashboards/Admin/SettingsPage.jsx"
+import {AgentSettingPage} from  "./Dashboards/Agent/ProfileSettings.jsx"
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import AgentComplaintsSection from './Dashboards/Agent/AgentComplamtSection.jsx';
+import AgentWorkLoad from "./Dashboards/Agent/AgentWorkLoad.jsx"
+import AdminWorkLoad from "./Dashboards/Admin/MyWorkLoad.jsx"
 function App() {
   const [count, setCount] = useState(0)
   
   return (
     <>
       <div>
+        <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         <Router>
-          <SocketProvider>
           <Routes>
             <Route path='/' element={<MainLayout/>}>
               <Route index element={<MainPage/>}/>
@@ -33,16 +45,25 @@ function App() {
             <Route index element={<UserOverviewPage/>}/>
             <Route path='my-complaints' element={<MyComplaints/>}/>
             <Route path="new-complaint" element={<NewComplaint/>}/>
+            <Route path="settings" element={<SettingPage/>}/>
             </Route>
             <Route path='/admin-dashboard' element={<AdminDashboardHome/>}>
             <Route index element={<AdminOverviewPage/>}/>
+            <Route path='all-complaints' element={<AdminDashboardComplaints/>}/>
+            <Route path='management' element={<UserManagementTable/>}/>
+            <Route path='workload' element={<AdminWorkLoad/>}/>
+            <Route path='reports' element={<AdminReport/>}/>
+            <Route path='settings' element={<AdminSettingPage/>}/>
             </Route>
             <Route path="/agent-dashboard" element={<AgentDashboardHome/>}>
             <Route index element={<AgentOverviewPage/>}/>
+            <Route path='manage-complaints' element={<AgentComplaintsSection/>}/>
+            <Route path='performance' element={<AgentWorkLoad/>}/>
+            <Route path='settings' element={<AgentSettingPage/>}/>
             </Route>
             <Route path="/dashboard-type"element={<DashboardType/>}/>
           </Routes>
-          </SocketProvider>
+          
         </Router>
       </div>
     </>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import axiosInstance from "../../api/AxiosInstance";
 
 const simulateApiCall = (data, delay = 1000) => {
   return new Promise(resolve => setTimeout(() => resolve(data), delay));
 };
 
-const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
+const SettingsPage = ({ userId, initialUserData }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const token = localStorage.getItem('jwtToken');
 
   const [userData, setUserData] = useState({
     name: '',
@@ -29,18 +31,12 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
 
   useEffect(() => {
     if (initialUserData) {
+      console.log(initialUserData);
       setUserData({
-        name: initialUserData.name || '',
+        name: initialUserData.name || '', 
         email: initialUserData.email || '',
         gender: initialUserData.gender || '',
         age: initialUserData.age || '',
-      });
-    } else {
-      setUserData({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        gender: 'Male',
-        age: 30,
       });
     }
   }, [initialUserData, userId]);
@@ -71,9 +67,13 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
 
     setProfileEditStatus('submitting');
     try {
-      const response = await simulateApiCall({ message: 'Profile updated successfully!', updatedData: userData }, 1500);
-      console.log('Profile update response:', response);
-      setProfileEditStatus('success');
+      const response = await axiosInstance.post('/api/setting', { userData }, { headers: { Authorization: `Bearer ${token}` } });
+      if (response.status === 200) {
+        console.log('Profile update response:', response);
+        setProfileEditStatus('success');
+      } else {
+        setProfileEditStatus('error');
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       setProfileEditStatus('error');
@@ -90,21 +90,32 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
 
   const handleSendOtp = async () => {
     if (!passwordForm.currentPassword.trim()) {
-      setPasswordFormErrors(prev => ({ ...prev, currentPassword: 'Current password is required to send OTP.' }));
+      setPasswordFormErrors(prev => ({ ...prev, currentPassword: 'Current password is required.' }));
       return;
     }
 
     setPasswordChangeStatus('sending_otp');
     setPasswordFormErrors({});
     try {
-      const response = await simulateApiCall({ message: 'OTP sent successfully!' }, 2000);
-      console.log('Send OTP response:', response);
-      setOtpSent(true);
-      setPasswordChangeStatus('otp_sent');
+      const response = await axiosInstance.post('/api/password', {
+        email: userData.email,
+        password: passwordForm.currentPassword,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 200) {
+        console.log('Send OTP response:', response.data);
+        setOtpSent(true);
+        setPasswordChangeStatus('otp_sent');
+      } else {
+        setPasswordChangeStatus('error');
+        setPasswordFormErrors(prev => ({ ...prev, general: response.data.message || 'Failed to send OTP.' }));
+      }
     } catch (error) {
       console.error('Error sending OTP:', error);
       setPasswordChangeStatus('error');
-      setPasswordFormErrors(prev => ({ ...prev, general: 'Failed to send OTP. Please try again.' }));
+      setPasswordFormErrors(prev => ({ ...prev, general: error.response?.data?.message || 'Failed to send OTP. Please try again.' }));
     }
   };
 
@@ -117,18 +128,25 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
     setPasswordChangeStatus('verifying_otp');
     setPasswordFormErrors({});
     try {
-      const isValidOtp = passwordForm.otp === '123456';
-      if (!isValidOtp) {
-        throw new Error('Invalid OTP.');
+      const response = await axiosInstance.post('/api/verify-email-otp', {
+        email: userData.email,
+        otp: passwordForm.otp,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 200) {
+        console.log('Verify OTP response:', response.data);
+        setOtpVerified(true);
+        setPasswordChangeStatus('otp_verified');
+      } else {
+        setPasswordChangeStatus('error');
+        setPasswordFormErrors(prev => ({ ...prev, otp: response.data.message || 'Invalid OTP.' }));
       }
-      const response = await simulateApiCall({ message: 'OTP verified successfully!' }, 1500);
-      console.log('Verify OTP response:', response);
-      setOtpVerified(true);
-      setPasswordChangeStatus('otp_verified');
     } catch (error) {
       console.error('Error verifying OTP:', error);
       setPasswordChangeStatus('error');
-      setPasswordFormErrors(prev => ({ ...prev, otp: error.message || 'Failed to verify OTP. Please try again.' }));
+      setPasswordFormErrors(prev => ({ ...prev, otp: error.response?.data?.message || 'Failed to verify OTP. Please try again.' }));
     }
   };
 
@@ -155,21 +173,32 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
     setPasswordChangeStatus('changing_password');
     setPasswordFormErrors({});
     try {
-      const response = await simulateApiCall({ message: 'Password changed successfully!' }, 2000);
-      console.log('Change password response:', response);
-      setPasswordChangeStatus('success');
-      setPasswordForm({
-        currentPassword: '',
-        otp: '',
-        newPassword: '',
-        confirmNewPassword: '',
+      const response = await axiosInstance.post('/api/changePassword', {
+        email: userData.email,
+        newPassword: passwordForm.newPassword,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setOtpSent(false);
-      setOtpVerified(false);
+
+      if (response.status === 200) {
+        console.log('Change password response:', response.data);
+        setPasswordChangeStatus('success');
+        setPasswordForm({
+          currentPassword: '',
+          otp: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        });
+        setOtpSent(false);
+        setOtpVerified(false);
+      } else {
+        setPasswordChangeStatus('error');
+        setPasswordFormErrors(prev => ({ ...prev, general: response.data.message || 'Failed to change password.' }));
+      }
     } catch (error) {
       console.error('Error changing password:', error);
       setPasswordChangeStatus('error');
-      setPasswordFormErrors(prev => ({ ...prev, general: 'Failed to change password. Please try again.' }));
+      setPasswordFormErrors(prev => ({ ...prev, general: error.response?.data?.message || 'Failed to change password. Please try again.' }));
     }
   };
 
@@ -356,8 +385,8 @@ const SettingsPage = ({ userId = 'simulatedUserId123', initialUserData }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 font-inter p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br  font-inter ">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-3xl font-bold text-gray-800 text-center">Settings</h1>
         </div>

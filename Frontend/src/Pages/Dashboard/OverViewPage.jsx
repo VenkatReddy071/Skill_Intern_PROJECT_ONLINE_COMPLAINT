@@ -11,11 +11,12 @@ import {
   Cell,
   Legend
 } from 'recharts';
+import { FaTasks, FaClock, FaHourglassHalf, FaCheckCircle, FaChartPie, FaChartBar } from 'react-icons/fa';
+export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,resolved}) => {
 
-export const DashboardOverviewPage = () => {
-  const totalSubmissions = 1234;
-  const pendingSubmissions = 125;
-  const resolvedSubmissions = 1109;
+  const totalSubmissions = total;
+  const pendingSubmissions =pending;
+  const resolvedSubmissions = resolved;
 
   const resolutionRate = (resolvedSubmissions / totalSubmissions) * 100;
   const pendingPercentage = (pendingSubmissions / totalSubmissions) * 100;
@@ -38,39 +39,33 @@ export const DashboardOverviewPage = () => {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between items-start">
-          <h2 className="text-xl font-semibold text-[#007FFF] mb-2">
-            Total Submissions
-          </h2>
-          <p className="text-5xl font-bold text-[#007FFF] mb-2">
-            {totalSubmissions.toLocaleString()}
-          </p>
-          <p className="text-sm text-gray-600">All complaints received.</p>
-        </div>
+  
+          <div className="bg-gradient-to-r from-blue-400 to-blue-500 text-white p-6 rounded-lg shadow-lg flex items-center justify-between">
+                    <div>
+                        <p className="text-3xl font-extrabold">{heading1}</p>
+                        <p className="text-2xl font-medium mt-1">{totalSubmissions.toLocaleString()}</p>
+                        <p className="text-lg text-gray-700">All complaints received.</p>
+                    </div>
+                    <FaTasks className="text-6xl opacity-30" />
+                </div>
+                <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white p-6 rounded-lg shadow-lg flex items-center justify-between">
+                    <div>
+                        <p className="text-3xl font-extrabold">{heading2}</p>
+                        <p className="text-2xl font-medium mt-1">{pendingSubmissions.toLocaleString()}</p>
+                          <p className="text-lg text-gray-700">total pending complaints are {pendingPercentage}%</p>
+                    </div>
+                    <FaHourglassHalf className="text-6xl opacity-30" />
+                </div>
+                <div className="bg-gradient-to-r from-green-400 to-green-500 text-white p-6 rounded-lg shadow-lg flex items-center justify-between">
+                    <div>
+                        <p className="text-3xl font-extrabold">{heading3}</p>
+                        <p className="text-2xl font-medium mt-1">{resolvedSubmissions.toLocaleString()}</p>
+                          <p className="text-lg text-gray-700">Total resolved complaints are {resolutionRate}%</p>
+                    </div>
+                    <FaClock className="text-6xl opacity-30" />
+                </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between items-start">
-          <h2 className="text-xl font-semibold text-[#007FFF] mb-2">
-            Pending Submissions
-          </h2>
-          <p className="text-5xl font-bold text-[#FFD700] mb-2">
-            {pendingSubmissions.toLocaleString()}
-          </p>
-          <p className="text-sm text-gray-600">
-            Still awaiting resolution. ({pendingPercentage.toFixed(1)}% of total)
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-between items-start">
-          <h2 className="text-xl font-semibold text-[#007FFF] mb-2">
-            Resolved Submissions
-          </h2>
-          <p className="text-5xl font-bold text-[#32CD32] mb-2">
-            {resolvedSubmissions.toLocaleString()}
-          </p>
-          <p className="text-sm text-gray-600">
-            Successfully closed. ({resolutionRate.toFixed(1)}% resolution rate)
-          </p>
-        </div>
+        
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -135,7 +130,7 @@ export const DashboardOverviewPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-extrabold text-[#007FFF] mb-4">
             Quick Actions
@@ -198,85 +193,6 @@ export const DashboardOverviewPage = () => {
               </svg>
               Edit My Profile
             </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-extrabold text-[#007FFF] mb-4">
-            Notifications
-          </h2>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold">New Update:</p>
-                <p className="text-sm">
-                  Your submission #7890 has been moved to "In Progress".
-                </p>
-                <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-              </div>
-            </div>
-
-            <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-md flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold">Resolved:</p>
-                <p className="text-sm">
-                  Submission #7801 has been successfully resolved.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">1 day ago</p>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 mr-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <div>
-                <p className="font-semibold">Reminder:</p>
-                <p className="text-sm">
-                  Submission #7855 requires your attention.
-                </p>
-                <p className="text-xs text-gray-500 mt-1">3 days ago</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

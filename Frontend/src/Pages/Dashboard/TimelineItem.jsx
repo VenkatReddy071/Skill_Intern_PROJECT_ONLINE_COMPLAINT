@@ -1,56 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+
 
 export const TimelineItem = ({ event, currentUserId }) => {
-    const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-    };
+    const isCurrentUser = event.sender && event.sender._id === currentUserId;
+    const senderName = event.sender ? (event.sender.name || event.sender.email || 'Unknown') : 'System';
+    const senderRole = event.sender ? (event.sender.role || '') : '';
+    const formattedTimestamp = new Date(event.timestamp).toLocaleString();
 
-  const isMessage = event.type === 'Message';
-  const isMyMessage = isMessage && event.sender && event.sender._id === currentUserId;
+    let messageBubbleClasses = "max-w-[80%] p-3 rounded-lg shadow-sm";
+    let messageContentClasses = "text-sm leading-relaxed";
 
-  return (
-    <div className={`relative mb-6 ${isMessage ? (isMyMessage ? 'flex justify-end' : 'flex justify-start') : ''}`}>
-      {!isMessage && (
-        <div className="absolute -left-1.5 top-0 w-3 h-3 bg-blue-500 rounded-full z-10 border-2 border-white"></div>
-      )}
-      <div className={`ml-6 ${isMessage ? 'max-w-[70%]' : 'w-full'}`}>
-        <div className={`flex items-center mb-1 ${isMyMessage ? 'justify-end' : ''}`}>
-          {!isMessage && <span className="text-lg mr-2">{event.icon}</span>}
-          <h4 className="font-semibold text-gray-800 text-md">{event.type}</h4>
-          <span className="ml-auto text-xs text-gray-500">{formatDate(event.timestamp)}</span>
+    if (event.type === 'Message') {
+        if (isCurrentUser) {
+            messageBubbleClasses += " bg-blue-100 self-end";
+        } else {
+            messageBubbleClasses += " bg-gray-100 self-start";
+        }
+        messageContentClasses += " text-gray-800";
+    } else {
+        messageBubbleClasses += " bg-white border border-gray-200";
+        messageContentClasses += " text-gray-700";
+    }
+
+    return (
+        <div className="relative mb-6 flex items-start gap-3">
+            <div className="absolute -left-[14px] top-1/2 -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white z-10"></div>
+
+            <div className="flex-1 ml-4 bg-white rounded-lg p-4 shadow-md border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-lg font-semibold text-gray-800 flex items-center">
+                        {event.icon} <span className="ml-2">{event.type}</span>
+                    </span>
+                    <span className="text-xs text-gray-500">{formattedTimestamp}</span>
+                </div>
+                {event.type === 'Message' ? (
+                    <div className={`${messageBubbleClasses} inline-block`}>
+                        <p className="text-xs font-semibold text-gray-600 mb-1">{senderName} ({senderRole}):</p>
+                        <p className={messageContentClasses}>{event.details}</p>
+                    </div>
+                ) : (
+                    <p className={messageContentClasses}>{event.details}</p>
+                )}
+                 {event.sender && (
+                    <p className="text-xs text-gray-500 mt-1 text-right">
+                        — {senderName} ({senderRole})
+                    </p>
+                )}
+            </div>
         </div>
-        {isMessage ? (
-          <div className={`p-3 rounded-xl shadow-sm relative ${
-            isMyMessage ? 'bg-blue-500 text-white ml-auto rounded-br-none' : 'bg-gray-200 text-gray-800 rounded-bl-none'
-          }`}>
-            <p className="text-xs text-opacity-80 mb-1">
-              {event.sender && (
-                <span className={`font-semibold mr-1 ${isMyMessage ? 'text-white' : ''}`}>
-                  {event.sender.name} ({event.sender.role}):
-                </span>
-              )}
-            </p>
-            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isMyMessage ? 'text-white' : 'text-gray-700'}`}>
-              {event.details}
-            </p>
-          </div>
-        ) : (
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {event.sender && (
-              <span className={`font-medium mr-1 ${
-                  event.sender.role === 'Customer' ? 'text-indigo-600' :
-                  event.sender.role === 'Agent' ? 'text-green-600' :
-                  event.sender.role === 'Admin' ? 'text-purple-600' : 'text-gray-700'
-              }`}>
-                {event.sender.name} ({event.sender.role}):
-              </span>
-            )}
-            {event.details}
-          </p>
-        )}
-      </div>
-    </div>
-  );
+    );
 };

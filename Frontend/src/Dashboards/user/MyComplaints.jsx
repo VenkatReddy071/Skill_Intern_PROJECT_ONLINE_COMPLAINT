@@ -1,11 +1,56 @@
     import React, { useState, useEffect } from 'react';
+    import axiosInstance from "../../api/AxiosInstance";
     import {ComplaintListTable} from "../../Pages/Dashboard/ComplaintTable"
     import {ComplaintDetailContent} from "../../Pages/Dashboard/ComplaintDetail"
+    import { toast } from 'react-toastify';
+    import { useSocket } from "../../context/ScoketContext"
+    import { useAuth } from "../../context/AuthContext";
     export const MyComplaints = () => {
+    const {socket}=useSocket();
+    const { user }=useAuth();
     const [viewMode, setViewMode] = useState('list');
     const [selectedComplaint, setSelectedComplaint] = useState(null);
-    const [complaint,setComplaint]=useState([]);
 
+    const [complaint,setComplaint]=useState();
+    useEffect(()=>{
+        const fetch=async(req,res)=>{
+            try{
+            const response=await axiosInstance.get('/api/my');
+            if(response.status===200 || response.status===201){
+                setComplaint(response.data);
+                console.log(response.data)
+            }
+            else{
+                alert("error");
+            }
+        }catch(error){
+            console.log(error);
+        }
+        }
+    fetch();
+    },[])
+    useEffect(()=>{
+        if(socket){
+            socket.emit(user?.id);
+            const complaintStatusUpdate = (data) => {
+                const { complaintId, newStatus, complaint } = data;
+                toast.info(`A Complaint Status is Updated ${newStatus}`);
+                setComplaint(prevComplaints => {
+                    return prevComplaints.map(comp => {
+                        if (comp?._id?.toString() === complaintId) {
+                            return complaint;
+                        }
+                        return comp;
+                    });
+                });
+            };
+            socket.on("complaintStatusUpdate",complaintStatusUpdate);
+
+            return ()=>{
+                socket.off("complaintStatusUpdate",complaintStatusUpdate);
+            }
+        }
+    })
     const handleViewComplaint = (complaint) => {
         setSelectedComplaint(complaint);
         setViewMode('detail');

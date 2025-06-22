@@ -18,11 +18,7 @@ export const UserDashboardHome = () => {
     console.log(error);
   })
   },[])
-  const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    profilePic: "https://via.placeholder.com/150/007FFF/FFFFFF?text=JD"
-  };
+
 
   const Links = [
     { name: "Dashboard", icon: <FaHome />, link: "/user-dashboard" },

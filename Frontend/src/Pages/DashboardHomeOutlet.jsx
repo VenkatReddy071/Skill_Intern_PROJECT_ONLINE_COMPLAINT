@@ -5,7 +5,7 @@ import { FaBars, FaUserCircle } from 'react-icons/fa';
 export const DashboardHomeOutlet = ({ userData, open, setOpen, Links, name, small }) => {
   const [activeTitle, setActiveTitle] = useState("Dashboard");
   const location = useLocation();
-
+  console.log(userData);
   useEffect(() => {
     const currentLink = Links.find(link => location.pathname === link.link);
     if (currentLink) {
@@ -60,11 +60,11 @@ export const DashboardHomeOutlet = ({ userData, open, setOpen, Links, name, smal
                   className="w-10 h-10 bg-[#007FFF] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold"
                   
                 >
-                  {userData.username?.substring(0,2)}
+                  {userData?.username?.substring(0,2)}
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">{userData.username}</span>
-                <span className="text-gray-500 text-xs whitespace-nowrap">{userData.email}</span>
+                <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">{userData?.username}</span>
+                <span className="text-gray-500 text-xs whitespace-nowrap">{userData?.email}</span>
               </div>
             </div>
           )}

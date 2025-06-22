@@ -53,6 +53,7 @@ credentials:true
 });
 const ComplaintRouter=require("./routes/ComplaintRouter");
 const SocketOn=require("./routes/initializeSocketHandlers");
+const UserRouter=require("./Controllers/userManagement");
 ComplaintRouter.setSocketIO(io);
 
 app.get("/", (req, res) => {
@@ -60,6 +61,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api",LoginRouter);
 app.use('/api', ComplaintRouter);
+app.use('/api',UserRouter);
 SocketOn(io);
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
