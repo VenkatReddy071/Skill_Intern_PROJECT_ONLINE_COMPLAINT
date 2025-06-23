@@ -7,7 +7,7 @@ import axios from "axios";
 
 export const Navbar = () => {
   const addNotification = useNotification();
-  const url = `${import.meta.env.VITE_SERVER_URL}/api/`;
+  const url = `${import.meta.env.VITE_SERVER_URL}`;
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -68,23 +68,19 @@ export const Navbar = () => {
   };
 
   const fetchProfile = async () => {
-    try {
-      const response = await axios.get(url + 'session', { withCredentials: true });
-      console.log(response.data);
-      setProfile(response.data);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response && error.response.data && error.response.data.message) {
-        addNotification(error.response.data.message, 'error');
-      } else {
-        addNotification("An unexpected error occurred while fetching profile. Please try again.", 'error');
-      }
-      setProfile(null);
-    }
+  axios.get(`${url}/api/das/profile`,{headers:{Authorization:`Bearer ${token}`},withCredentials:true})
+  .then((response)=>{
+    console.log(response.data);
+    setProfile(response.data);
+  })
+  .catch((error)=>{
+    console.log(error);
+  })
   };
 
   const handleLogout = async () => {
     try {
-      await axios.post(url + 'logout', {}, { withCredentials: true });
+      await axios.post(url + '/api/logout', {}, { withCredentials: true });
       setProfile(null);
       addNotification("Logged out successfully!", "success");
       navigate("/");
@@ -151,13 +147,13 @@ export const Navbar = () => {
                   className="w-10 h-10 bg-[#007FFF] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold"
                   onClick={toggleProfileDropdown}
                 >
-                  {getInitials(profile.name)}
+                  {getInitials(profile.username)}
                 </div>
 
                 {showProfileDropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
                     <div className="block px-4 py-2 text-gray-800 text-sm border-b border-gray-200">
-                      Hello, {profile.name}!
+                      Hello, {profile.username}!
                     </div>
                     {profile.role.includes('admin') && (
                       <Link to="/dashboard-type?=admin-dashboard" className="block px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={toggleProfileDropdown}>Admin Dashboard</Link>
@@ -190,12 +186,12 @@ export const Navbar = () => {
                 className="w-10 h-10 py-2 bg-[#007FFF] text-white rounded-full flex items-center justify-center cursor-pointer text-lg font-bold"
                 onClick={toggleProfileDropdown}
               >
-                {getInitials(profile.name)}
+                {getInitials(profile.username)}
               </div>
               {showProfileDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
                   <div className="block px-4 py-2 text-gray-800 text-sm border-b border-gray-200">
-                    Hello, {profile.name}!
+                    Hello, {profile.username}!
                   </div>
                   
                   {profile.role.includes('admin') && (
