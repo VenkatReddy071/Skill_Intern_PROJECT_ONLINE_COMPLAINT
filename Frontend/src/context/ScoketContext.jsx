@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
     const url=import.meta.env.VITE_SERVER_URL
     useEffect(() => {
         if (token) {
-            const newSocket = io("http://localhost:3000", {
+            const newSocket = io("https://resloveflow.onrender.com", {
                 auth: {
                     token: token,
                 },
