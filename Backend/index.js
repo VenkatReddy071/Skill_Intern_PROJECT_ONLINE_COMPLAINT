@@ -6,6 +6,7 @@ const session = require('express-session');
 const cookieParser=require('cookie-parser')
 const MongoDBStore = require('connect-mongodb-session')(session);
 const {Server}=require("socket.io");
+app.set('trust proxy', 1);
 const store = new MongoDBStore({
   uri: process.env.MONGO_URL,
   collection: 'sessions'
