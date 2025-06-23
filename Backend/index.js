@@ -30,7 +30,7 @@ app.use(session({
 }));
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://resolveflow.onrender.com",
   credentials: true,
 }));
 app.use(cookieParser());
@@ -46,7 +46,7 @@ connect();
 const server=http.createServer(app);
 const io=new Server(server,{
 cors:{
-origin:'http://localhost:5173',
+origin:'https://resolveflow.onrender.com',
 methods:["GET","POST"],
 credentials:true
  }
