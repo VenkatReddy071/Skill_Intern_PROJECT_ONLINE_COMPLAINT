@@ -22,9 +22,15 @@ export const AgentOverviewPage=()=>{
         useEffect(()=>{
             fetch();
         },[])
+
+        const IconLinks=[
+        {name:"My Workload",link:'/agent-dashboard/performance'},
+        {name:"Manage Complaints",link:"/agent-dashboard/manage-complaints"},
+        {name:"Edit Profile",link:"/agent-dashboard/settings"}
+    ]
     return(
         <div>
-            <DashboardOverviewPage heading1={"Total Complaints Assigned"} heading2={"Pending Complaints"} heading3={"Resolved Complaints"} total={total} pending={pending} resolved={resolved}/>
+            <DashboardOverviewPage heading1={"Total Complaints Assigned"} heading2={"Pending Complaints"} heading3={"Resolved Complaints"} total={total} pending={pending} resolved={resolved} IconLinks={IconLinks}/>
         </div>
     )
 }

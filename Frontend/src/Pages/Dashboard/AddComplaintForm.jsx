@@ -11,7 +11,6 @@ const AddComplaintForm = ({ onComplaintSubmit, onCancel }) => {
       phoneNumber: '',
       address: '',
     },
-    attachments: [],
   });
   const [formErrors, setFormErrors] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -67,15 +66,11 @@ const AddComplaintForm = ({ onComplaintSubmit, onCancel }) => {
 
     setSubmissionStatus('submitting');
 
-    const uploadedAttachmentDetails = selectedFiles.map(file => ({
-      fileName: file.name,
-      fileType: file.type,
-      fileUrl: `https://example.com/uploads/${Date.now()}-${file.name}`,
-    }));
+  
 
     const complaintData = {
       ...formData,
-      attachments: uploadedAttachmentDetails,
+      attachments:selectedFiles,
       status: 'Registered',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -96,7 +91,6 @@ const AddComplaintForm = ({ onComplaintSubmit, onCancel }) => {
           phoneNumber: '',
           address: '',
         },
-        attachments: [],
       });
       setSelectedFiles([]);
       setFormErrors({});

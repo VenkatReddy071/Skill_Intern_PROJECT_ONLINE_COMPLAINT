@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -12,7 +13,7 @@ import {
   Legend
 } from 'recharts';
 import { FaTasks, FaClock, FaHourglassHalf, FaCheckCircle, FaChartPie, FaChartBar } from 'react-icons/fa';
-export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,resolved}) => {
+export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,resolved,IconLinks}) => {
 
   const totalSubmissions = total;
   const pendingSubmissions =pending;
@@ -136,6 +137,7 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
             Quick Actions
           </h2>
           <div className="space-y-4">
+          <Link to={IconLinks[0].link}>
             <button className="w-full bg-[#007FFF] hover:bg-[#005bb5] text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -151,8 +153,10 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Submit New Complaint
+              {IconLinks[0].name}
             </button>
+            </Link>
+            <Link to={IconLinks[1].link}>
             <button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -174,8 +178,10 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              View All Submissions
+              {IconLinks[1].name}
             </button>
+            </Link>
+            <Link to={IconLinks[2].link}>
             <button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -191,8 +197,9 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                 />
               </svg>
-              Edit My Profile
+              {IconLinks[2].name}
             </button>
+            </Link>
           </div>
         </div>
       </div>

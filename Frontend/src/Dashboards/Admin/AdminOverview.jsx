@@ -22,10 +22,15 @@ export const AdminOverviewPage=()=>{
     useEffect(()=>{
         fetch();
     },[])
+    const IconLinks=[
+        {name:"My Workload",link:'/admin-dashboard/workload'},
+        {name:"View All Complaints",link:"/admin-dashboard/all-complaints"},
+        {name:"Edit Profile",link:"/admin-dashboard/settings"}
+    ]
     return(
         <>
         <div>
-            <DashboardOverviewPage heading1={"Total Complaints"} heading2={"Pending Complaints"} heading3={"Resolved Complaints"} total={total} pending={pending} resolved={resolved}/>
+            <DashboardOverviewPage heading1={"Total Complaints"} heading2={"Pending Complaints"} heading3={"Resolved Complaints"} total={total} pending={pending} resolved={resolved} IconLinks={IconLinks}/>
         </div>
         </>
     )

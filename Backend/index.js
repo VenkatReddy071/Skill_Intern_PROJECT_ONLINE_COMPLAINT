@@ -59,6 +59,7 @@ ComplaintRouter.setSocketIO(io);
 app.get("/", (req, res) => {
     res.send("Hello from the MERN backend!");
 });
+app.use('/attachments', express.static('attachments'));
 app.use("/api",LoginRouter);
 app.use('/api', ComplaintRouter);
 app.use('/api',UserRouter);

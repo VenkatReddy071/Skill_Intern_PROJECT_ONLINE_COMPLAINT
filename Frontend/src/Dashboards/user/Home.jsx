@@ -26,7 +26,6 @@ export const UserDashboardHome = () => {
     { name: "Submit Complaint", icon: <FaEdit />, link: "/user-dashboard/new-complaint" },
     { name: "Profile Settings", icon: <FaUserCog />, link: "/user-dashboard/settings" }
   ];
-
   return (
     <div>
       <DashboardHomeOutlet userData={profile} open={open} setOpen={setOpen} Links={Links} name={"User Dashboard"} small={"UD"}/>

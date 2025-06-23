@@ -10,9 +10,10 @@
     const { user }=useAuth();
     const [viewMode, setViewMode] = useState('list');
     const [selectedComplaint, setSelectedComplaint] = useState(null);
-
+    const [loading,setLoading]=useState(false);
     const [complaint,setComplaint]=useState();
     useEffect(()=>{
+        setLoading(true);
         const fetch=async(req,res)=>{
             try{
             const response=await axiosInstance.get('/api/my');
@@ -25,6 +26,9 @@
             }
         }catch(error){
             console.log(error);
+        }
+        finally{
+            setLoading(false);
         }
         }
     fetch();
@@ -55,11 +59,28 @@
         setSelectedComplaint(complaint);
         setViewMode('detail');
     };
-
+    const onFeedbackSubmit=async(id,data)=>{
+        try{
+        const response=await axiosInstance.put(`/api/complaint/${id}/feedback`,data);
+        if(response.status===200){
+            toast.info("successfully submited the feedback.");
+        }
+        }
+        catch(error){
+            console.log(error);
+            toast.info("error submitting the feedback")
+        }
+    }
     const handleBackToList = () => {
         setSelectedComplaint(null);
         setViewMode('list');
     };
+    if (loading) return (
+        <div className="flex justify-center items-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <p className="ml-4 text-gray-700">Loading complaints...</p>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br  font-inter ">
@@ -86,6 +107,7 @@
             selectedComplaint && (
                 <ComplaintDetailContent
                 complaint={selectedComplaint}
+                onFeedbackSubmit={onFeedbackSubmit}
                 />
             )
             )}

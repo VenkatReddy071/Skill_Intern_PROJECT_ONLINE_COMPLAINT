@@ -2,8 +2,38 @@ const express=require("express");
 const Complaint=require("../models/complaints");
 const User=require("../models/user");
 const {verifyToken}=require("../Controllers/Auth.webtoken");
+const { sendEmail } = require('../utils/email');
+const multer = require('multer');
+const path = require('path');
 const { ObjectId } = require('mongoose').Types;
 let io;
+
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'attachments/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const fileFilter = (req, file, cb) => {
+  const allowedFileTypes = /jpeg|jpg|png|pdf|doc|docx/;
+  const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedFileTypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Only images (jpeg, png, jpg) and documents (pdf, doc, docx) are allowed!'), false);
+  }
+};
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 const router=express.Router();
 
 const getLast7DaysDates = () => {
@@ -20,11 +50,19 @@ router.setSocketIO=(socketIOInstance=>{
     io=socketIOInstance;
 })
 
-router.post('/complaint',verifyToken,async(req,res)=>{
-    const {title,description,productName,purchaseDate,contactDetails,attachments}=req.body?.data;
+router.post('/complaint',verifyToken,upload.array('attachments', 5),async(req,res)=>{
     console.log(req.body);
+    const {title,description,productName,purchaseDate,contactDetails,attachments}=req.body;
+    
+    console.log("Uploaded files (req.files):", req.files);
     const id=req.user.id;
     try{
+        const attachments = req.files?.map(file => ({
+        fileName: file.originalname,
+        fileType: file.mimetype,
+          fileUrl: `/attachments/${file.filename}`,
+      }));
+      console.log(attachments);
         const newComplaint=new Complaint({
             userId:id,
             title,
@@ -43,7 +81,12 @@ router.post('/complaint',verifyToken,async(req,res)=>{
         })
 
         await newComplaint.save();
-
+        await sendEmail(
+                    req.user.email,
+                    'New Complaint is Registered SuccessFully on  ResolveFlow',
+                    `Our Admin will Lookup the complaint and very soon.`,
+                    `<p>Our admin is going to Assign the <strong>Agent very soon</strong></p><p>Thanks for a registering the complaint .</p><p>From Team @ ResolveFlow.</p>`
+                );
         const complaint=await Complaint.findById(newComplaint._id).populate('assignedTo', 'username email').populate('userId', 'username email');
         io.to('admin_alerts').emit('newComplaintRegister',{
             complaintId:newComplaint?._id,
@@ -80,6 +123,39 @@ router.get("/my",verifyToken,async(req,res)=>{
     }
 })
 
+router.put('/complaint/:id/feedback', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(req.body);
+        const { rating, comments, submittedAt } = req.body;
+
+        const complaint = await Complaint.findById(id);
+
+        if (!complaint) {
+            return res.status(404).json({ message: 'Complaint not found.' });
+        }
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ message: 'Rating is required and must be between 1 and 5.' });
+        }
+        if (!comments || comments.trim() === '') {
+            return res.status(400).json({ message: 'Comments are required for feedback.' });
+        }
+
+        complaint.feedback = {
+            rating,
+            comments,
+            submittedAt: submittedAt || new Date(),
+        };
+        complaint.updatedAt = new Date();
+
+        await complaint.save();
+
+        res.status(200).json({ message: 'Feedback submitted successfully!', complaint });
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
 router.get('/workload', verifyToken, async (req, res) => {
     try {
         const totalComplaints = await Complaint.countDocuments({});
@@ -313,6 +389,7 @@ router.put('/complaint/:id/assign',verifyToken,async(req,res)=>{
             timestamp: new Date(),
         })
         console.log(`Complaint ${complaint._id} assigned. Notifying agent ${user.username}.`);
+        
         res.json({ message: 'Complaint assigned successfully', complaint });
     }
     catch (error) {
@@ -324,6 +401,7 @@ router.put('/complaint/:id/assign',verifyToken,async(req,res)=>{
 router.put("/complaint/:id/status",verifyToken,async(req,res)=>{
     const {status,resolutionDetails}=req.body;
     try{
+        const { status, resolutionDetails, resolutionDate } = req.body
         const complaint = await Complaint.findById(req.params.id);
         if (!complaint) {
             return res.status(404).json({ message: 'Complaint not found' });
@@ -333,6 +411,17 @@ router.put("/complaint/:id/status",verifyToken,async(req,res)=>{
         }
         const oldStatus=complaint.status;
         complaint.status = status;
+
+        if (status === 'Resolved') {
+                if (!resolutionDetails || resolutionDetails.trim() === '') {
+                    return res.status(400).json({ message: 'Resolution details are required when resolving a complaint.' });
+                }
+                complaint.resolutionDetails = resolutionDetails;
+                complaint.resolutionDate = resolutionDate || new Date();
+            } else {
+                complaint.resolutionDetails = undefined;
+                complaint.resolutionDate = undefined;
+            }
         complaint.timelineEvents.push({
             eventType: 'Status Updated',
             description: `Complaint status changed from "${oldStatus}" to "${status}".`,
