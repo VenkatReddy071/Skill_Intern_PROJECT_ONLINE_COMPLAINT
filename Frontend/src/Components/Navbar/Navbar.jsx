@@ -8,6 +8,7 @@ import axios from "axios";
 export const Navbar = () => {
   const addNotification = useNotification();
   const url = `${import.meta.env.VITE_SERVER_URL}`;
+  const token=localStorage.getItem('jwtToken');
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
