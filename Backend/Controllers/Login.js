@@ -30,7 +30,7 @@ const Login = async (req, res) => {
             name: findUser.name,
             role: findUser.role,
         };
-        await req.session?.save();
+        await req.session.save();
 
         let responseMessage = "Login Successful!";
         let token = null;
@@ -141,8 +141,8 @@ const GetSession=async(req,res)=>{
 
 const getRoles = async (req, res) => {
     try {
-        const userEmail = req.user?.email || req.session?.user?.email;
-
+        const userEmail = req.user.email || req.session?.user?.email;
+        console.log(req.user.email)
         if (!userEmail) {
             return res.status(401).json({ message: "Authentication required: User email not found." });
         }

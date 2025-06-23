@@ -8,7 +8,7 @@ router.post('/register', Sign);
 router.get("/session",GetSession);
 router.post("/logout",Logout);
 router.get("/profile/info",verifyToken,profileInfo);
-router.get("/role",getRoles);
+router.get("/role",verifyToken,getRoles);
 router.post("/setting",verifyToken,profileSetting);
 router.post('/forgot-password', requestPasswordReset);
 router.post('/reset-password', verifyOtpAndResetPassword);

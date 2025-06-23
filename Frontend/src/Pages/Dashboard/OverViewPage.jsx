@@ -53,7 +53,7 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
                     <div>
                         <p className="text-3xl font-extrabold">{heading2}</p>
                         <p className="text-2xl font-medium mt-1">{pendingSubmissions.toLocaleString()}</p>
-                          <p className="text-lg text-gray-700">total pending complaints are {pendingPercentage}%</p>
+                          <p className="text-lg text-gray-700">total pending complaints are {pendingPercentage.toFixed(2)}%</p>
                     </div>
                     <FaHourglassHalf className="text-6xl opacity-30" />
                 </div>
@@ -61,7 +61,7 @@ export const DashboardOverviewPage = ({heading1,heading2,heading3,total,pending,
                     <div>
                         <p className="text-3xl font-extrabold">{heading3}</p>
                         <p className="text-2xl font-medium mt-1">{resolvedSubmissions.toLocaleString()}</p>
-                          <p className="text-lg text-gray-700">Total resolved complaints are {resolutionRate}%</p>
+                          <p className="text-lg text-gray-700">Total resolved complaints are {resolutionRate.toFixed(2)}%</p>
                     </div>
                     <FaClock className="text-6xl opacity-30" />
                 </div>
